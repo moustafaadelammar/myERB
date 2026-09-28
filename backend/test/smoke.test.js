@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-const base = process.env.MYERB_API_URL || 'http://localhost:4000';
-const adminEmail = process.env.MYERB_ADMIN_EMAIL || 'admin@myerb.local';
-const adminPassword = process.env.MYERB_ADMIN_PASSWORD || 'Admin@123';
+const base = process.env.MYERP_API_URL || 'http://localhost:4000';
+const adminEmail = process.env.MYERP_ADMIN_EMAIL || 'admin@myerb.local';
+const adminPassword = process.env.MYERP_ADMIN_PASSWORD || 'Admin@123';
 
 async function login(email, password) {
   const r = await fetch(base + '/api/auth/login', {
@@ -38,5 +38,5 @@ test('live API smoke + authentication contract', async () => {
 });
 
 test('frontend smoke URL is configured', () => {
-  assert.equal(process.env.MYERB_WEB_URL || 'http://localhost:8080', 'http://localhost:8080');
+  assert.equal(process.env.MYERP_WEB_URL || 'http://localhost:8080', 'http://localhost:8080');
 });
