@@ -7,23 +7,35 @@ services:
       POSTGRES_DB: myerb
       POSTGRES_USER: myerb
       POSTGRES_PASSWORD: myerb
-    ports: ['5432:5432']
-    volumes: ['myerb_pgdata:/var/lib/postgresql/data','./database/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro']
+    ports: ["5432:5432"]
+    volumes:
+      - myerb_pgdata:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/001-init.sql:ro
     healthcheck:
-      test: ['CMD-SHELL','pg_isready -U myerb -d myerb']
+      test: ["CMD-SHELL","pg_isready -U myerb -d myerb"]
       interval: 5s
       timeout: 3s
       retries: 20
   api:
     build: ./backend
     container_name: myerb-api
+    restart: unless-stopped
     environment:
       PORT: 4000
       DATABASE_URL: postgres://myerb:myerb@postgres:5432/myerb
       JWT_SECRET: local-development-secret
-    ports: ['4000:4000']
+    ports: ["4000:4000"]
     depends_on:
       postgres:
         condition: service_healthy
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: myerb-web
+    restart: unless-stopped
+    ports: ["8080:80"]
+    depends_on:
+      - api
 volumes:
   myerb_pgdata:
