@@ -77,3 +77,15 @@ insert into role_permissions(role_id,permission_id)
 select r.id,p.id from roles r cross join permissions p
 where r.name='finance' and p.code in ('dashboard.view','finance.manage','reports.view')
 on conflict do nothing;
+
+CREATE TABLE IF NOT EXISTS branches(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text UNIQUE NOT NULL,address text,phone text,is_active boolean NOT NULL DEFAULT true,created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS departments(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text UNIQUE NOT NULL,branch_id uuid REFERENCES branches(id),is_active boolean NOT NULL DEFAULT true);
+CREATE TABLE IF NOT EXISTS employees(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),employee_no text UNIQUE NOT NULL,full_name text NOT NULL,phone text,email text,department_id uuid REFERENCES departments(id),job_title text,hire_date date,status text NOT NULL DEFAULT 'active',created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS expenses(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),expense_no text UNIQUE NOT NULL,expense_date date NOT NULL DEFAULT current_date,category text NOT NULL,description text,amount numeric(14,2) NOT NULL CHECK(amount>0),cashbox_id uuid REFERENCES cashboxes(id),created_by uuid REFERENCES users(id),created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS incomes(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),income_no text UNIQUE NOT NULL,income_date date NOT NULL DEFAULT current_date,category text NOT NULL,description text,amount numeric(14,2) NOT NULL CHECK(amount>0),cashbox_id uuid REFERENCES cashboxes(id),created_by uuid REFERENCES users(id),created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS returns(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),return_no text UNIQUE NOT NULL,return_type text NOT NULL CHECK(return_type IN('sale','purchase')),invoice_id uuid REFERENCES invoices(id),customer_id uuid REFERENCES customers(id),supplier_id uuid REFERENCES suppliers(id),warehouse_id uuid REFERENCES warehouses(id),return_date date NOT NULL DEFAULT current_date,total numeric(14,2) NOT NULL DEFAULT 0,reason text,status text NOT NULL DEFAULT 'posted',created_by uuid REFERENCES users(id),created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS return_items(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),return_id uuid NOT NULL REFERENCES returns(id) ON DELETE CASCADE,product_id uuid NOT NULL REFERENCES products(id),quantity numeric(14,3) NOT NULL CHECK(quantity>0),unit_price numeric(14,2) NOT NULL DEFAULT 0,line_total numeric(14,2) NOT NULL DEFAULT 0);
+CREATE INDEX IF NOT EXISTS idx_employees_department ON employees(department_id);
+CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(expense_date);
+CREATE INDEX IF NOT EXISTS idx_incomes_date ON incomes(income_date);
+CREATE INDEX IF NOT EXISTS idx_returns_date ON returns(return_date);
