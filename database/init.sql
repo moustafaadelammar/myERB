@@ -11,3 +11,16 @@ create index if not exists idx_products_code on products(code);create index if n
 insert into users(email,password_hash,full_name,role) values('admin@myerb.local',crypt('Admin@123',gen_salt('bf')), 'مدير النظام','admin') on conflict(email) do nothing;
 insert into product_categories(name) values('كاميرات'),('شبكات'),('Storage'),('مسجلات') on conflict(name) do nothing;
 insert into warehouses(name,location) values('المخزن الرئيسي','بني سويف') on conflict(name) do nothing;
+CREATE TABLE IF NOT EXISTS roles(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text UNIQUE NOT NULL,description text);
+CREATE TABLE IF NOT EXISTS permissions(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),code text UNIQUE NOT NULL,name text NOT NULL);
+CREATE TABLE IF NOT EXISTS role_permissions(role_id uuid REFERENCES roles(id) ON DELETE CASCADE,permission_id uuid REFERENCES permissions(id) ON DELETE CASCADE,PRIMARY KEY(role_id,permission_id));
+CREATE TABLE IF NOT EXISTS audit_logs(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid REFERENCES users(id),action text NOT NULL,entity text,entity_id uuid,details jsonb,created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS cashboxes(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text UNIQUE NOT NULL,currency text NOT NULL DEFAULT 'EGP',opening_balance numeric(14,2) NOT NULL DEFAULT 0,is_active boolean NOT NULL DEFAULT true);
+CREATE TABLE IF NOT EXISTS cashbox_transactions(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),cashbox_id uuid REFERENCES cashboxes(id),transaction_type text NOT NULL CHECK(transaction_type IN('receipt','payment','transfer')),amount numeric(14,2) NOT NULL CHECK(amount>=0),reference text,description text,transaction_date date NOT NULL DEFAULT current_date,created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS product_stock_movements(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),product_id uuid REFERENCES products(id),warehouse_id uuid REFERENCES warehouses(id),movement_type text NOT NULL CHECK(movement_type IN('in','out','adjustment','transfer')),quantity numeric(14,3) NOT NULL CHECK(quantity<>0),reference text,notes text,created_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_stock_movements_product ON product_stock_movements(product_id,created_at);
+INSERT INTO roles(name,description) VALUES('admin','صلاحيات كاملة'),('manager','إدارة وتشغيل'),('sales','المبيعات'),('purchasing','المشتريات'),('warehouse','المخازن'),('finance','المالية') ON CONFLICT(name) DO NOTHING;
+INSERT INTO permissions(code,name) VALUES
+('dashboard.view','عرض لوحة التحكم'),('customers.manage','إدارة العملاء'),('suppliers.manage','إدارة الموردين'),('products.manage','إدارة الأصناف'),('inventory.manage','إدارة المخزون'),('sales.manage','إدارة المبيعات'),('purchases.manage','إدارة المشتريات'),('finance.manage','إدارة المالية'),('reports.view','عرض التقارير'),('users.manage','إدارة المستخدمين'),('audit.view','عرض سجل العمليات') ON CONFLICT(code) DO NOTHING;
+INSERT INTO cashboxes(name,opening_balance) VALUES('الخزينة الرئيسية',0) ON CONFLICT(name) DO NOTHING;
