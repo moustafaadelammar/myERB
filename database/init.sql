@@ -51,3 +51,29 @@ CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
 CREATE INDEX IF NOT EXISTS idx_opportunities_stage ON opportunities(stage);
 CREATE INDEX IF NOT EXISTS idx_projects_customer ON projects(customer_id);
 CREATE INDEX IF NOT EXISTS idx_tickets_status ON service_tickets(status);
+
+-- Permission defaults and compatibility for existing local databases.
+insert into role_permissions(role_id,permission_id)
+select r.id,p.id from roles r cross join permissions p
+where r.name='admin'
+on conflict do nothing;
+insert into role_permissions(role_id,permission_id)
+select r.id,p.id from roles r cross join permissions p
+where r.name='manager' and p.code in ('dashboard.view','customers.manage','suppliers.manage','products.manage','inventory.manage','sales.manage','purchases.manage','finance.manage','reports.view')
+on conflict do nothing;
+insert into role_permissions(role_id,permission_id)
+select r.id,p.id from roles r cross join permissions p
+where r.name='sales' and p.code in ('dashboard.view','customers.manage','sales.manage','reports.view')
+on conflict do nothing;
+insert into role_permissions(role_id,permission_id)
+select r.id,p.id from roles r cross join permissions p
+where r.name='purchasing' and p.code in ('dashboard.view','suppliers.manage','products.manage','purchases.manage','reports.view')
+on conflict do nothing;
+insert into role_permissions(role_id,permission_id)
+select r.id,p.id from roles r cross join permissions p
+where r.name='warehouse' and p.code in ('dashboard.view','products.manage','inventory.manage','reports.view')
+on conflict do nothing;
+insert into role_permissions(role_id,permission_id)
+select r.id,p.id from roles r cross join permissions p
+where r.name='finance' and p.code in ('dashboard.view','finance.manage','reports.view')
+on conflict do nothing;
