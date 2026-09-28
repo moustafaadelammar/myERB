@@ -89,3 +89,15 @@ CREATE INDEX IF NOT EXISTS idx_employees_department ON employees(department_id);
 CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(expense_date);
 CREATE INDEX IF NOT EXISTS idx_incomes_date ON incomes(income_date);
 CREATE INDEX IF NOT EXISTS idx_returns_date ON returns(return_date);
+
+CREATE TABLE IF NOT EXISTS serial_numbers(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),product_id uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,serial_no text UNIQUE NOT NULL,status text NOT NULL DEFAULT 'in_stock',warehouse_id uuid REFERENCES warehouses(id),customer_id uuid REFERENCES customers(id),invoice_id uuid REFERENCES invoices(id),created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS inventory_adjustments(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),adjustment_no text UNIQUE NOT NULL,warehouse_id uuid NOT NULL REFERENCES warehouses(id),reason text,created_by uuid REFERENCES users(id),created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS inventory_adjustment_items(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),adjustment_id uuid NOT NULL REFERENCES inventory_adjustments(id) ON DELETE CASCADE,product_id uuid NOT NULL REFERENCES products(id),quantity_delta numeric(14,3) NOT NULL);
+CREATE TABLE IF NOT EXISTS technicians(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),employee_id uuid REFERENCES employees(id),specialty text,status text NOT NULL DEFAULT 'active');
+CREATE TABLE IF NOT EXISTS site_visits(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),visit_no text UNIQUE NOT NULL,customer_id uuid REFERENCES customers(id),project_id uuid REFERENCES projects(id),technician_id uuid REFERENCES technicians(id),scheduled_at timestamptz,completed_at timestamptz,status text NOT NULL DEFAULT 'scheduled',notes text);
+CREATE TABLE IF NOT EXISTS project_costs(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),project_id uuid NOT NULL REFERENCES projects(id) ON DELETE CASCADE,cost_type text NOT NULL,description text,amount numeric(14,2) NOT NULL CHECK(amount>=0),cost_date date NOT NULL DEFAULT current_date,created_by uuid REFERENCES users(id));
+CREATE TABLE IF NOT EXISTS notifications(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid REFERENCES users(id) ON DELETE CASCADE,title text NOT NULL,message text,read_at timestamptz,created_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS idx_serial_product ON serial_numbers(product_id);
+CREATE INDEX IF NOT EXISTS idx_site_visits_customer ON site_visits(customer_id);
+CREATE INDEX IF NOT EXISTS idx_project_costs_project ON project_costs(project_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id,read_at);
