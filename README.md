@@ -44,7 +44,20 @@ Production Kubernetes
 
 ## Local full-stack development
 
-### Docker (recommended)
+### One-command local bootstrap (recommended)
+**Windows PowerShell:**
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\setup-local.ps1
+```
+The script checks/installs Git and Docker Desktop through `winget` when available, builds the complete stack, waits for PostgreSQL/API health, verifies the web app, and opens the browser.
+
+**Linux/macOS:**
+```bash
+bash scripts/setup-local.sh
+```
+
+### Docker manually
 ```bash
 docker compose -f docker-compose.local.yml up -d --build
 ```
