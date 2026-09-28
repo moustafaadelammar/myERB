@@ -42,12 +42,25 @@ Staging
 Production Kubernetes
 ```
 
-## Local development
+## Local full-stack development
 
+### Docker (recommended)
 ```bash
-npm install
-npm run dev
+docker compose -f docker-compose.local.yml up -d --build
 ```
+
+Open ERP at http://localhost:8080 and API health at http://localhost:4000/health.
+
+Default local login: admin@myerb.local / Admin@123.
+
+### Direct development
+```bash
+docker compose -f docker-compose.local.yml up -d postgres
+cd backend && npm install && npm run dev
+```
+In another terminal: `npm install && npm run dev`.
+
+This local stack is intentionally independent of Supabase/cloud services; PostgreSQL is the local source of truth.
 
 ## Docker
 
