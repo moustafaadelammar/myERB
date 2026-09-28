@@ -9,3 +9,9 @@ INSERT INTO accounts(code,name,account_type) VALUES ('1100','النقدية وا
 
 -- Serial-to-invoice traceability
 CREATE TABLE IF NOT EXISTS invoice_item_serials(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),invoice_item_id uuid NOT NULL REFERENCES invoice_items(id) ON DELETE CASCADE,serial_id uuid NOT NULL REFERENCES serial_numbers(id),UNIQUE(invoice_item_id,serial_id),UNIQUE(serial_id));
+
+
+-- RMA workflow
+CREATE TABLE IF NOT EXISTS rma_cases(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),rma_no text UNIQUE NOT NULL,return_id uuid REFERENCES returns(id) ON DELETE SET NULL,serial_id uuid REFERENCES serial_numbers(id),customer_id uuid REFERENCES customers(id),status text NOT NULL DEFAULT 'received' CHECK(status IN('received','inspected','approved','rejected','repaired','replaced','refunded','closed')),resolution text CHECK(resolution IN('repair','replacement','refund','none')),inspection_notes text,created_by uuid REFERENCES users(id),created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS idx_rma_cases_serial ON rma_cases(serial_id);
+CREATE INDEX IF NOT EXISTS idx_rma_cases_customer ON rma_cases(customer_id);
