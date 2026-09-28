@@ -24,6 +24,31 @@ INSERT INTO roles(name,description) VALUES('admin','صلاحيات كاملة'),
 INSERT INTO permissions(code,name) VALUES
 ('dashboard.view','عرض لوحة التحكم'),('customers.manage','إدارة العملاء'),('suppliers.manage','إدارة الموردين'),('products.manage','إدارة الأصناف'),('inventory.manage','إدارة المخزون'),('sales.manage','إدارة المبيعات'),('purchases.manage','إدارة المشتريات'),('finance.manage','إدارة المالية'),('reports.view','عرض التقارير'),('users.manage','إدارة المستخدمين'),('audit.view','عرض سجل العمليات') ON CONFLICT(code) DO NOTHING;
 INSERT INTO cashboxes(name,opening_balance) VALUES('الخزينة الرئيسية',0) ON CONFLICT(name) DO NOTHING;
+-- Default RBAC mapping. Permissions are data-driven and can be extended without code changes.
+INSERT INTO role_permissions(role_id,permission_id)
+SELECT r.id,p.id FROM roles r CROSS JOIN permissions p
+WHERE r.name='admin'
+ON CONFLICT DO NOTHING;
+INSERT INTO role_permissions(role_id,permission_id)
+SELECT r.id,p.id FROM roles r JOIN permissions p ON p.code IN('dashboard.view','customers.manage','suppliers.manage','products.manage','inventory.manage','sales.manage','purchases.manage','finance.manage','reports.view','audit.view')
+WHERE r.name='manager'
+ON CONFLICT DO NOTHING;
+INSERT INTO role_permissions(role_id,permission_id)
+SELECT r.id,p.id FROM roles r JOIN permissions p ON p.code IN('dashboard.view','customers.manage','sales.manage','reports.view')
+WHERE r.name='sales'
+ON CONFLICT DO NOTHING;
+INSERT INTO role_permissions(role_id,permission_id)
+SELECT r.id,p.id FROM roles r JOIN permissions p ON p.code IN('dashboard.view','suppliers.manage','products.manage','purchases.manage','reports.view')
+WHERE r.name='purchasing'
+ON CONFLICT DO NOTHING;
+INSERT INTO role_permissions(role_id,permission_id)
+SELECT r.id,p.id FROM roles r JOIN permissions p ON p.code IN('dashboard.view','products.manage','inventory.manage','reports.view')
+WHERE r.name='warehouse'
+ON CONFLICT DO NOTHING;
+INSERT INTO role_permissions(role_id,permission_id)
+SELECT r.id,p.id FROM roles r JOIN permissions p ON p.code IN('dashboard.view','finance.manage','reports.view')
+WHERE r.name='finance'
+ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS sales_orders(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),order_no text UNIQUE NOT NULL,customer_id uuid NOT NULL REFERENCES customers(id),status text NOT NULL DEFAULT 'draft',order_date date NOT NULL DEFAULT current_date,subtotal numeric(14,2) NOT NULL DEFAULT 0,tax numeric(14,2) NOT NULL DEFAULT 0,total numeric(14,2) NOT NULL DEFAULT 0,created_at timestamptz NOT NULL DEFAULT now());
 CREATE TABLE IF NOT EXISTS sales_order_items(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),order_id uuid NOT NULL REFERENCES sales_orders(id) ON DELETE CASCADE,product_id uuid NOT NULL REFERENCES products(id),quantity numeric(14,3) NOT NULL CHECK(quantity>0),unit_price numeric(14,2) NOT NULL CHECK(unit_price>=0),discount numeric(14,2) NOT NULL DEFAULT 0,line_total numeric(14,2) NOT NULL);
