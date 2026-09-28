@@ -6,3 +6,6 @@ CREATE TABLE IF NOT EXISTS journal_lines(id uuid PRIMARY KEY DEFAULT gen_random_
 CREATE INDEX IF NOT EXISTS idx_journal_entries_date ON journal_entries(entry_date);
 CREATE INDEX IF NOT EXISTS idx_journal_lines_account ON journal_lines(account_id);
 INSERT INTO accounts(code,name,account_type) VALUES ('1100','النقدية والخزائن','asset'),('1200','العملاء','asset'),('1300','المخزون','asset'),('1400','ضريبة القيمة المضافة - مدخلات','asset'),('2100','الموردون','liability'),('2200','ضريبة القيمة المضافة - مخرجات','liability'),('3100','رأس المال','equity'),('4100','المبيعات','revenue'),('4200','إيرادات أخرى','revenue'),('5100','تكلفة المبيعات','expense'),('5200','المصروفات التشغيلية','expense') ON CONFLICT(code) DO NOTHING;
+
+-- Serial-to-invoice traceability
+CREATE TABLE IF NOT EXISTS invoice_item_serials(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),invoice_item_id uuid NOT NULL REFERENCES invoice_items(id) ON DELETE CASCADE,serial_id uuid NOT NULL REFERENCES serial_numbers(id),UNIQUE(invoice_item_id,serial_id),UNIQUE(serial_id));
