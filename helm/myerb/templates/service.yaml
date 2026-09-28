@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "myerb.fullname" . }}
+spec:
+  selector:
+    app: {{ include "myerb.name" . }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+  type: {{ .Values.service.type }}
