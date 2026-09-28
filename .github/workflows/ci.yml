@@ -25,6 +25,13 @@ jobs:
       - run: npm test
       - run: npm run build
 
+      - name: Validate backend
+        run: |
+          cd backend
+          npm install
+          node --check src/server.js
+          npm test
+
       - name: Build Docker image
         run: docker build --tag myerb:ci .
 
