@@ -44,7 +44,7 @@ Production Kubernetes
 
 ## Local full-stack development
 
-### One-command local bootstrap (recommended)
+### One-command local bootstrap (recommended)\n\n**Windows — single file:** `myERB-ONE-CLICK.cmd` (recommended for a fresh PC). It checks/installs Git and Docker Desktop with `winget` when available, downloads the project branch, builds the local stack, waits for API health, and opens the browser.
 **Windows PowerShell:**
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
