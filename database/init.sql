@@ -116,6 +116,7 @@ CREATE INDEX IF NOT EXISTS idx_incomes_date ON incomes(income_date);
 CREATE INDEX IF NOT EXISTS idx_returns_date ON returns(return_date);
 
 CREATE TABLE IF NOT EXISTS serial_numbers(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),product_id uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,serial_no text UNIQUE NOT NULL,status text NOT NULL DEFAULT 'in_stock',warehouse_id uuid REFERENCES warehouses(id),customer_id uuid REFERENCES customers(id),invoice_id uuid REFERENCES invoices(id),created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS invoice_item_serials(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),invoice_item_id uuid NOT NULL REFERENCES invoice_items(id) ON DELETE CASCADE,serial_id uuid NOT NULL REFERENCES serial_numbers(id),UNIQUE(invoice_item_id,serial_id),UNIQUE(serial_id));
 CREATE TABLE IF NOT EXISTS inventory_adjustments(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),adjustment_no text UNIQUE NOT NULL,warehouse_id uuid NOT NULL REFERENCES warehouses(id),reason text,created_by uuid REFERENCES users(id),created_at timestamptz NOT NULL DEFAULT now());
 CREATE TABLE IF NOT EXISTS inventory_adjustment_items(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),adjustment_id uuid NOT NULL REFERENCES inventory_adjustments(id) ON DELETE CASCADE,product_id uuid NOT NULL REFERENCES products(id),quantity_delta numeric(14,3) NOT NULL);
 CREATE TABLE IF NOT EXISTS technicians(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),employee_id uuid REFERENCES employees(id),specialty text,status text NOT NULL DEFAULT 'active');
