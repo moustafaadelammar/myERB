@@ -1,4 +1,4 @@
-name: myERB CI
+name: myERP CI
 
 on:
   push:
@@ -53,7 +53,7 @@ jobs:
 
       - name: Run backend integration tests
         env:
-          MYERB_API_URL: http://127.0.0.1:4000
+          MYERP_API_URL: http://127.0.0.1:4000
           REQUIRE_LIVE_API: '1'
         run: |
           cd backend
