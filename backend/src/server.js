@@ -118,4 +118,4 @@ app.get('/api/service/contracts',auth,async(_,res)=>{const r=await pool.query('s
 app.get('/api/notifications',auth,async(req,res)=>{const r=await pool.query('select * from notifications where user_id=$1 order by created_at desc limit 100',[req.user.sub]);res.json(r.rows)});
 app.post('/api/notifications/:id/read',auth,async(req,res)=>{const r=await pool.query('update notifications set read_at=now() where id=$1 and user_id=$2 returning *',[req.params.id,req.user.sub]);res.json(r.rows[0]||null)});
 app.use((e,_,res,__)=>(console.error(e),res.status(500).json({error:'حدث خطأ في الخادم'})));
-const port=process.env.PORT||4000;bootstrap().then(()=>advancedBootstrap()).then(()=>app.listen(port,()=>console.log('myERB API listening on '+port))).catch(e=>{console.error('Bootstrap failed',e);process.exit(1)});
+const port=process.env.PORT||4000;bootstrap().then(()=>advancedBootstrap()).then(()=>app.listen(port,()=>console.log('myERP API listening on '+port))).catch(e=>{console.error('Bootstrap failed',e);process.exit(1)});
