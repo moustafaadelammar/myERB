@@ -1,0 +1,6 @@
+apiVersion: v2
+name: myerb
+description: Production-ready Helm chart for myERB
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
