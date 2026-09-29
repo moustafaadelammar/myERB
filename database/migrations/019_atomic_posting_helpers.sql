@@ -12,11 +12,9 @@ RETURNS uuid LANGUAGE plpgsql AS $$
 DECLARE v_id uuid;
 BEGIN
   INSERT INTO transaction_postings(transaction_type,transaction_id,posted_by)
-  VALUES(p_type,p_id,p_user) RETURNING id INTO v_id;
-  INSERT INTO journal_entry_sources(journal_entry_id,source_type,source_id)
-  SELECT je.id,p_type,p_id FROM journal_entries je
-  WHERE je.source_type=p_type AND je.source_id=p_id
-  ON CONFLICT(source_type,source_id) DO NOTHING;
+  VALUES(p_type,p_id,p_user)
+  ON CONFLICT(transaction_type,transaction_id) DO UPDATE SET status='posted',posted_at=now(),posted_by=excluded.posted_by
+  RETURNING id INTO v_id;
   RETURN v_id;
 END $$;
 
@@ -26,6 +24,6 @@ SELECT tp.transaction_type,tp.transaction_id,tp.status,tp.posted_at,tp.posted_by
        COALESCE(SUM(jl.credit),0)::numeric(16,4) total_credit,
        (COALESCE(SUM(jl.debit),0)-COALESCE(SUM(jl.credit),0))::numeric(16,4) variance
 FROM transaction_postings tp
-LEFT JOIN journal_entry_sources js ON js.source_type=tp.transaction_type AND js.source_id=tp.transaction_id
-LEFT JOIN journal_entry_lines jl ON jl.journal_entry_id=js.journal_entry_id
+LEFT JOIN journal_entries je ON je.reference_type=tp.transaction_type AND je.reference_id=tp.transaction_id
+LEFT JOIN journal_lines jl ON jl.entry_id=je.id
 GROUP BY tp.transaction_type,tp.transaction_id,tp.status,tp.posted_at,tp.posted_by;
