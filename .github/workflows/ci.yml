@@ -2,7 +2,7 @@ name: myERP CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, feature/local-fullstack]
   pull_request:
     branches: [main, develop]
 
@@ -33,17 +33,16 @@ jobs:
 
       - name: Start PostgreSQL
         run: |
-          docker run -d --name myerb-postgres             -e POSTGRES_DB=myerb             -e POSTGRES_USER=myerb             -e POSTGRES_PASSWORD=myerb             -p 5432:5432             -v "$GITHUB_WORKSPACE/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro"             postgres:16-alpine
+          docker run -d --name myerp-postgres -e POSTGRES_DB=myerb -e POSTGRES_USER=myerb -e POSTGRES_PASSWORD=myerb -p 5432:5432 -v "$GITHUB_WORKSPACE/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro" postgres:16-alpine
           for i in {1..30}; do
-            docker exec myerb-postgres pg_isready -U myerb -d myerb && break
+            docker exec myerp-postgres pg_isready -U myerb -d myerb && break
             sleep 2
           done
-          docker exec myerb-postgres pg_isready -U myerb -d myerb
+          docker exec myerp-postgres pg_isready -U myerb -d myerb
 
       - name: Start backend
         run: |
           cd backend
-          npm install
           nohup env DATABASE_URL=postgres://myerb:myerb@127.0.0.1:5432/myerb JWT_SECRET=ci-secret node src/server.js > ../backend-ci.log 2>&1 &
           for i in {1..30}; do
             curl -fsS http://127.0.0.1:4000/health && break
@@ -64,11 +63,11 @@ jobs:
         run: cat backend-ci.log
 
       - name: Build Docker image
-        run: docker build --tag myerb:ci .
+        run: docker build --tag myerp:ci .
 
       - name: Smoke-test container
         run: |
-          docker run -d --name myerb-ci -p 8080:80 myerb:ci
+          docker run -d --name myerp-ci -p 8080:80 myerp:ci
           sleep 3
           curl --fail http://127.0.0.1:8080/health
-          docker rm -f myerb-ci
+          docker rm -f myerp-ci
