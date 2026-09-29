@@ -27,6 +27,7 @@ if errorlevel 1 (
     if "!WINGET!"=="1" (
         echo Git not found. Installing Git...
         winget install --id Git.Git -e --source winget --accept-source-agreements --accept-package-agreements
+        set "PATH=%PATH%;%ProgramFiles%\Git\cmd;%LocalAppData%\Programs\Git\cmd"
     ) else (
         echo [ERROR] Git is missing and winget is unavailable.
         goto FAIL
@@ -46,6 +47,7 @@ if errorlevel 1 (
     if "!WINGET!"=="1" (
         echo Docker Desktop not found. Installing Docker Desktop...
         winget install --id Docker.DockerDesktop -e --source winget --accept-source-agreements --accept-package-agreements
+        set "PATH=%PATH%;%ProgramFiles%\Docker\Docker\resources\bin"
     ) else (
         echo [ERROR] Docker Desktop is missing and winget is unavailable.
         goto FAIL
@@ -58,6 +60,7 @@ if errorlevel 1 (
     goto FAIL
 )
 echo [OK] Docker command ready.
+if not exist "%ProgramFiles%\Docker\Docker\Docker Desktop.exe" if exist "%ProgramFiles%\Docker\Docker\Docker Desktop.exe" set "DOCKER_DESKTOP=%ProgramFiles%\Docker\Docker\Docker Desktop.exe"
 
 echo.
 echo [3/10] Waiting for Docker Engine...
