@@ -65,7 +65,34 @@ app.patch('/api/tickets/:id',auth,async(req,res)=>{const {status,priority,title,
 app.get('/api/tickets',auth,async(_,res)=>{const r=await pool.query('select t.*,c.name customer_name,a.name asset_name from service_tickets t left join customers c on c.id=t.customer_id left join customer_assets a on a.id=t.asset_id order by t.opened_at desc');res.json(r.rows)});
 app.post('/api/tickets',auth,async(req,res)=>{const {customerId,assetId,title,description,priority='medium',assignedTo}=req.body||{};if(!title)return res.status(400).json({error:'عنوان البلاغ مطلوب'});const no='TKT-'+Date.now();const r=await pool.query('insert into service_tickets(ticket_no,customer_id,asset_id,title,description,priority,assigned_to) values($1,$2,$3,$4,$5,$6,$7) returning *',[no,customerId||null,assetId||null,title,description,priority,assignedTo||null]);res.status(201).json(r.rows[0])});
 app.get('/api/operations/summary',auth,async(_,res)=>{const [l,o,p,t]=await Promise.all([pool.query("select count(*)::int count from leads where status not in ('won','lost')"),pool.query("select count(*)::int count from opportunities where stage not in ('won','lost')"),pool.query("select count(*)::int count from projects where status not in ('completed','cancelled')"),pool.query("select count(*)::int count from service_tickets where status not in ('closed','cancelled')")]);res.json({leads:l.rows[0].count,opportunities:o.rows[0].count,projects:p.rows[0].count,tickets:t.rows[0].count})});
-app.get('/api/dashboard',auth,async(_,res)=>{const [p,c,s,i]=await Promise.all([pool.query('select count(*)::int count from products'),pool.query('select count(*)::int count from customers'),pool.query('select count(*)::int count from suppliers'),pool.query('select count(*)::int count from invoices')]);res.json({products:p.rows[0].count,customers:c.rows[0].count,suppliers:s.rows[0].count,invoices:i.rows[0].count})});async function bootstrap(){await pool.query(`
+app.get('/api/dashboard',auth,async(_,res)=>{
+ try{
+  const [sales,purchases,receivables,payables,cash,stock,low,tickets,projects,tasks,recent]=await Promise.all([
+   pool.query("select coalesce(sum(total),0) total,count(*)::int count from invoices where invoice_type='sale' and invoice_date>=date_trunc('month',current_date)::date and invoice_date<current_date+1"),
+   pool.query("select coalesce(sum(total),0) total,count(*)::int count from invoices where invoice_type='purchase' and invoice_date>=date_trunc('month',current_date)::date and invoice_date<current_date+1"),
+   pool.query("select coalesce(sum(i.total-coalesce((select sum(p.amount) from invoice_payments ip join payments p on p.id=ip.payment_id where ip.invoice_id=i.id),0)),0) balance from invoices i where i.invoice_type='sale'"),
+   pool.query("select coalesce(sum(i.total-coalesce((select sum(p.amount) from invoice_payments ip join payments p on p.id=ip.payment_id where ip.invoice_id=i.id),0)),0) balance from invoices i where i.invoice_type='purchase'"),
+   pool.query("select coalesce(sum(case when transaction_type in ('receipt','income') then amount when transaction_type in ('payment','expense') then -amount else 0 end),0) balance from cashbox_transactions"),
+   pool.query("select count(distinct p.id)::int products,coalesce(sum(sb.quantity),0) units,coalesce(sum(sb.quantity*coalesce(p.cost,0)),0) value from products p left join stock_balances sb on sb.product_id=p.id where p.is_active=true"),
+   pool.query("select count(*)::int count from products p where p.is_active=true and coalesce((select sum(sb.quantity) from stock_balances sb where sb.product_id=p.id),0)<=p.min_stock"),
+   pool.query("select count(*)::int count from service_tickets where status not in ('closed','cancelled')"),
+   pool.query("select count(*)::int count from projects where status not in ('completed','cancelled')"),
+   pool.query("select count(*)::int count from project_tasks where status not in ('done','completed','cancelled') and due_date is not null and due_date<current_date"),
+   pool.query("select invoice_no id,invoice_type type,invoice_date date,total,coalesce(c.name,s.name,'') party from invoices i left join customers c on c.id=i.customer_id left join suppliers s on s.id=i.supplier_id order by invoice_date desc,created_at desc limit 8")
+  ]);
+  res.json({
+   salesMonth:{total:Number(sales.rows[0].total),count:sales.rows[0].count},
+   purchasesMonth:{total:Number(purchases.rows[0].total),count:purchases.rows[0].count},
+   receivables:Number(receivables.rows[0].balance),
+   payables:Number(payables.rows[0].balance),
+   cash:Number(cash.rows[0].balance),
+   stock:{products:stock.rows[0].products,units:Number(stock.rows[0].units),value:Number(stock.rows[0].value)},
+   lowStock:low.rows[0].count,openTickets:tickets.rows[0].count,activeProjects:projects.rows[0].count,overdueTasks:tasks.rows[0].count,
+   recent:recent.rows.map(x=>({...x,total:Number(x.total),type:x.type==='sale'?'بيع':'شراء'}))
+  });
+ }catch(e){console.error(e);res.status(500).json({error:'تعذر تحميل مؤشرات لوحة التحكم'})}
+});
+async function bootstrap(){await pool.query(`
 CREATE TABLE IF NOT EXISTS branches(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text UNIQUE NOT NULL,address text,phone text,is_active boolean NOT NULL DEFAULT true,created_at timestamptz NOT NULL DEFAULT now());
 CREATE TABLE IF NOT EXISTS departments(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),name text UNIQUE NOT NULL,branch_id uuid REFERENCES branches(id),is_active boolean NOT NULL DEFAULT true);
 CREATE TABLE IF NOT EXISTS employees(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),employee_no text UNIQUE NOT NULL,full_name text NOT NULL,phone text,email text,department_id uuid REFERENCES departments(id),job_title text,hire_date date,status text NOT NULL DEFAULT 'active',created_at timestamptz NOT NULL DEFAULT now());
