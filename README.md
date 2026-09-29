@@ -1,6 +1,6 @@
-# myERB ERP — نظام تخطيط موارد المؤسسة وإدارة وتشغيل الشركة
+# myERP ERP — نظام تخطيط موارد المؤسسة وإدارة وتشغيل الشركة
 
-myERB ERP هو نظام ERP عربي RTL متكامل مصمم ليصبح منصة تخطيط موارد المؤسسة وإدارة وتشغيل الشركة بالكامل، مع هندسة قابلة للتوسع وDevOps من البداية.
+myERP ERP هو نظام ERP عربي RTL متكامل مصمم ليصبح منصة تخطيط موارد المؤسسة وإدارة وتشغيل الشركة بالكامل، مع هندسة قابلة للتوسع وDevOps من البداية.
 
 ## المكونات الحالية
 
@@ -58,7 +58,7 @@ Production Kubernetes
 
 ## Local full-stack development
 
-### One-command local bootstrap (recommended)\n\n**Windows — single file:** `myERB-ONE-CLICK.cmd` (recommended for a fresh PC). It checks/installs Git and Docker Desktop with `winget` when available, downloads the project branch, builds the local stack, waits for API health, and opens the browser.
+### One-command local bootstrap (recommended)\n\n**Windows — single file:** `myERP-ONE-CLICK.cmd` (recommended for a fresh PC). It checks/installs Git and Docker Desktop with `winget` when available, downloads the project branch, builds the local stack, waits for API health, and opens the browser.
 **Windows PowerShell:**
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
