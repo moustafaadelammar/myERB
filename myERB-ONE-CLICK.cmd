@@ -1,15 +1,15 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
-title myERB - One Click Installer
+title myERP - One Click Installer
 
-set "REPO_URL=https://github.com/moustafaadelammar/myERB.git"
+set "REPO_URL=https://github.com/moustafaadelammar/myERP.git"
 set "BRANCH=feature/local-fullstack"
-set "PROJECT_DIR=%USERPROFILE%\myERB"
+set "PROJECT_DIR=%USERPROFILE%\myERP"
 set "COMPOSE_FILE=docker-compose.local.yml"
 
 echo.
 echo ============================================================
-echo                    myERB ONE CLICK
+echo                    myERP ONE CLICK
 echo ============================================================
 echo.
 
@@ -84,7 +84,7 @@ if exist "%PROJECT_DIR%\.git" (
   git reset --hard "origin/%BRANCH%"
   git clean -fd
 ) else (
-  if exist "%PROJECT_DIR%" ren "%PROJECT_DIR%" "myERB_old_%RANDOM%"
+  if exist "%PROJECT_DIR%" ren "%PROJECT_DIR%" "myERP_old_%RANDOM%"
   echo [4/7] Downloading project...
   git clone --branch "%BRANCH%" --single-branch "%REPO_URL%" "%PROJECT_DIR%"
   if errorlevel 1 (
@@ -126,12 +126,12 @@ if "!API_OK!"=="0" (
   exit /b 1
 )
 
-echo [7/7] Opening myERB...
+echo [7/7] Opening myERP...
 start "" "http://localhost:8080"
 
 echo.
 echo ============================================================
-echo                    myERB IS READY
+echo                    myERP IS READY
 echo ============================================================
 echo Web:      http://localhost:8080
 echo API:      http://localhost:4000/health
