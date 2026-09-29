@@ -18,7 +18,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
 
       - run: npm install
       - run: npm run lint
@@ -59,7 +58,7 @@ jobs:
           npm test
 
       - name: Show backend log on failure
-        if: failure()
+        if: failure() && hashFiles('backend-ci.log') != ''
         run: cat backend-ci.log
 
       - name: Build Docker image
