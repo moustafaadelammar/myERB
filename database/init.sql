@@ -59,6 +59,9 @@ CREATE INDEX IF NOT EXISTS idx_sales_orders_customer ON sales_orders(customer_id
 CREATE INDEX IF NOT EXISTS idx_purchase_orders_supplier ON purchase_orders(supplier_id,order_date);
 CREATE INDEX IF NOT EXISTS idx_payments_date ON payments(payment_date);
 
+CREATE TABLE IF NOT EXISTS invoices(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),invoice_no text UNIQUE NOT NULL,invoice_type text NOT NULL CHECK(invoice_type IN('sale','purchase')),customer_id uuid REFERENCES customers(id),supplier_id uuid REFERENCES suppliers(id),status text NOT NULL DEFAULT 'draft',invoice_date date NOT NULL DEFAULT current_date,total numeric(14,2) NOT NULL DEFAULT 0,tax_amount numeric(14,2) NOT NULL DEFAULT 0,created_at timestamptz NOT NULL DEFAULT now());
+CREATE INDEX IF NOT EXISTS idx_invoices_customer ON invoices(customer_id,invoice_date);
+CREATE INDEX IF NOT EXISTS idx_invoices_supplier ON invoices(supplier_id,invoice_date);
 CREATE TABLE IF NOT EXISTS invoice_items(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),invoice_id uuid NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,product_id uuid NOT NULL REFERENCES products(id),warehouse_id uuid NOT NULL REFERENCES warehouses(id),quantity numeric(14,3) NOT NULL CHECK(quantity>0),unit_price numeric(14,2) NOT NULL CHECK(unit_price>=0),unit_cost numeric(14,2) NOT NULL DEFAULT 0,discount numeric(14,2) NOT NULL DEFAULT 0,line_total numeric(14,2) NOT NULL);
 CREATE TABLE IF NOT EXISTS invoice_payments(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),invoice_id uuid NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,payment_id uuid NOT NULL REFERENCES payments(id) ON DELETE CASCADE,amount numeric(14,2) NOT NULL CHECK(amount>0),created_at timestamptz NOT NULL DEFAULT now());
 CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id);
