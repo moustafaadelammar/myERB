@@ -60,7 +60,6 @@ if errorlevel 1 (
     goto FAIL
 )
 echo [OK] Docker command ready.
-if not exist "%ProgramFiles%\Docker\Docker\Docker Desktop.exe" if exist "%ProgramFiles%\Docker\Docker\Docker Desktop.exe" set "DOCKER_DESKTOP=%ProgramFiles%\Docker\Docker\Docker Desktop.exe"
 
 echo.
 echo [3/10] Waiting for Docker Engine...
