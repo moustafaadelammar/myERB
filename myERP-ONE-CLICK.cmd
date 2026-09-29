@@ -215,6 +215,14 @@ if errorlevel 1 (
     goto SHOW_LOGS
 )
 
+echo Checking backend JavaScript syntax before startup...
+docker run --rm myerb-api node --check src/server.js
+if errorlevel 1 (
+    echo [ERROR] Backend JavaScript syntax check failed.
+    goto SHOW_LOGS
+)
+echo [OK] Backend syntax is valid.
+
 echo Starting PostgreSQL + API + Web...
 docker compose -f "%COMPOSE_FILE%" up -d --remove-orphans
 if errorlevel 1 (
