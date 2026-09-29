@@ -202,6 +202,12 @@ if errorlevel 1 (
     echo [WARNING] Compose down returned an error. Continuing...
 )
 
+echo Removing legacy myERB containers if they exist...
+for %%C in (myerb-postgres myerb-api myerb-web) do (
+    docker rm -f %%C >nul 2>&1
+)
+echo [OK] Legacy container names cleared.
+
 echo Building fresh application images...
 docker compose -f "%COMPOSE_FILE%" build --pull
 if errorlevel 1 (
